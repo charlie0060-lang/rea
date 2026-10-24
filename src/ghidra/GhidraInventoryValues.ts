@@ -224,8 +224,12 @@ const baseItem = {
   value: z.string(),
 };
 const symbolItem = z.object({ ...baseItem, symbol: symbolFacts }).strict();
+const procedureFields = { ...baseItem, symbol: symbolFacts.optional() };
 const procedureItem = z
-  .object({ ...baseItem, procedure: procedureFacts })
+  .object({
+    ...procedureFields,
+    procedure: procedureFacts,
+  })
   .strict();
 const stringItem = z.object({ ...baseItem, string: stringFacts }).strict();
 const searchItem = z.object(baseItem).strict();
@@ -339,7 +343,7 @@ const resultSchemas = {
   list_strings: z.array(stringItem),
   procedure_address: nativeAddressObservationSchema,
   resolve_containing_procedure: containingProcedure,
-  search_procedures: z.array(searchItem),
+  search_procedures: z.array(z.object(procedureFields).strict()),
   search_strings: z.array(searchItem),
   set_address_name: z.boolean(),
   set_addresses_names: z.record(z.string(), z.boolean()),

@@ -5,6 +5,37 @@ import {
   parseGhidraInventoryResult,
 } from "./GhidraInventoryValues.js";
 
+it.each(["list_procedures", "search_procedures"] as const)(
+  "%s preserves observed function symbol provenance from the Java bridge",
+  (operation) => {
+    const symbol = {
+      primary: true,
+      dynamic: false,
+      external: false,
+      type: "Function",
+      source: "analysis",
+    };
+    const procedure = {
+      address: "0x140001010",
+      value: "FUN_140001010",
+      ...(operation === "list_procedures"
+        ? { procedure: { external: false, thunk: false, thunk_target: null } }
+        : {}),
+    };
+    const inventory = [{ ...procedure, symbol }];
+    expect(parseGhidraInventoryResult(operation, inventory)).toEqual({
+      ok: true,
+      value: { value: inventory },
+    });
+    expect(parseGhidraInventoryResult(operation, [procedure]).ok).toBe(true);
+    expect(
+      parseGhidraInventoryResult(operation, [
+        { ...procedure, symbol: { ...symbol, source: "unrecognized" } },
+      ]).ok,
+    ).toBe(false);
+  },
+);
+
 it("validates large masked byte queries at the provider boundary without changing caller spelling", () => {
   const input = {
     pattern: "aA??".repeat(1024 * 1024),
